@@ -1,0 +1,10 @@
+
+streamlit
+streamlit-webrtc
+streamlit-autorefresh
+opencv-python
+mediapipe
+numpy
+pandas
+scipy
+av
