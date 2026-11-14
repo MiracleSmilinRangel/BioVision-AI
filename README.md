@@ -98,7 +98,7 @@ BioVision-AI/
 
 ```bash
 
-git clone YOUR\_GITHUB\_REPOSITORY\_URL
+git clone https://github.com/MiracleSmilinRangel/BioVision-AI.git
 
 cd BioVision-AI
 
