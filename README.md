@@ -1,4 +1,15 @@
 # 🧬 BioVision AI
+
+## 🚀 Live Application
+
+**Experience BioVision AI directly in your browser!**
+
+🌐 **Live Demo:** https://biovision-ai-demo.streamlit.app/
+
+💻 **Source Code:** https://github.com/MiracleSmilinRangel/BioVision-AI
+
+No local installation is required to explore the deployed application.
+
 ### AI-Powered Contactless Health Monitoring System Using Computer Vision
 
 BioVision AI is an experimental, webcam-based health monitoring application that explores contactless estimation of selected physiological parameters using Computer Vision and Digital Signal Processing techniques.
