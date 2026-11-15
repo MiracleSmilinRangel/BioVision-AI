@@ -1,10 +1,9 @@
-
 # 🧬 BioVision AI
 ### AI-Powered Contactless Health Monitoring System Using Computer Vision
 
 BioVision AI is an experimental, webcam-based health monitoring application that explores contactless estimation of selected physiological parameters using Computer Vision and Digital Signal Processing techniques.
 
-The system analyzes facial landmarks, upper-body visual signals, and facial colour variations to estimate blink patterns, respiration rate, and heart rate through an interactive Streamlit dashboard.
+The system analyzes facial landmarks, upper-body visual signals, and facial colour variations to estimate blink patterns, respiration rate, and heart rate through an interactive Streamlit dashboard. It also includes an experimental fatigue-status indicator based on eye-closure patterns and PERCLOS estimation.
 
 ---
 
@@ -12,11 +11,11 @@ The system analyzes facial landmarks, upper-body visual signals, and facial colo
 
 BioVision AI consists of three independent monitoring modules:
 
-1. **Blink & Fatigue Dynamics** – Detects eye activity and analyzes blink patterns using facial landmarks and Eye Aspect Ratio (EAR).
+1. **Blink & Fatigue Dynamics** – Detects eye activity and analyzes blink patterns using facial landmarks and Eye Aspect Ratio (EAR). It also estimates PERCLOS and displays fatigue-related status indicators.
 2. **Respiration Rate Estimation** – Estimates breathing rate by analyzing visual signals extracted from the upper-body region.
 3. **Heart Rate Estimation (rPPG)** – Estimates heart rate using facial colour variations captured through a webcam.
 
-The application provides visualized signals, monitoring values, and session summaries through a real-time interactive dashboard.
+The application provides visualized signals, monitoring values, fatigue-status indicators, and session summaries through a real-time interactive dashboard.
 
 ---
 
@@ -29,7 +28,20 @@ The application provides visualized signals, monitoring values, and session summ
 - Eye closure and blink detection.
 - Blink counting and blink-rate monitoring.
 - Live EAR signal visualization.
-- Session summary displaying blink activity.
+- PERCLOS estimation using a rolling 30-second sample window.
+- Experimental fatigue-status classification.
+- Live fatigue-status display.
+- Session summary displaying blink activity and fatigue-related information.
+
+**Fatigue Status Categories**
+
+| Status | PERCLOS Percentage / Condition |
+|---|---|
+| Normal | Below 20% |
+| Possible fatigue | 20% or higher |
+| Prolonged eye closure | Continuous eye closure for 2 seconds or more |
+
+*Note: Prolonged eye closure is determined by duration rather than PERCLOS percentage. The thresholds are illustrative project settings and are not clinically validated.*
 
 ### 🫁 2. Respiration Rate Estimation
 
@@ -54,6 +66,7 @@ The application provides visualized signals, monitoring values, and session summ
 - Webcam-based real-time analysis.
 - Dynamic measurement displays.
 - Signal graphs and session summaries.
+- Live fatigue-status indicator and PERCLOS percentage guide.
 
 ---
 
@@ -63,15 +76,19 @@ The application provides visualized signals, monitoring values, and session summ
 
 ![BioVision AI Dashboard](screenshots/overview.png)
 
-### 2. Blink & Fatigue Dynamics
+### 2. General Monitoring Dashboard
 
-![Blink Monitoring](screenshots/blink-monitoring.png)
+![General Monitoring Dashboard](screenshots/monitoring.png)
 
-### 3. Respiration Rate Monitoring
+### 3. Blink Monitoring & Fatigue Status
+
+![Blink Monitoring and Fatigue Status](screenshots/blink-monitoring.png)
+
+### 4. Respiration Rate Monitoring
 
 ![Respiration Monitoring](screenshots/respiration-monitoring.png)
 
-### 4. Heart Rate Monitoring (rPPG)
+### 5. Heart Rate Monitoring (rPPG)
 
 **Live Camera Monitoring**
 
@@ -107,6 +124,8 @@ The application provides visualized signals, monitoring values, and session summ
 - Pose Estimation
 - Eye Aspect Ratio (EAR)
 - Blink Detection
+- PERCLOS Estimation
+- Fatigue Status Classification
 - Remote Photoplethysmography (rPPG)
 - Region of Interest (ROI) Extraction
 - Green-Channel Signal Analysis
@@ -125,8 +144,9 @@ The application follows this general processing workflow:
 3. **Region Extraction:** Relevant facial and upper-body regions are selected.
 4. **Signal Extraction:** Visual information is converted into numerical signals.
 5. **Signal Processing:** Extracted signals are processed using NumPy and SciPy.
-6. **Parameter Estimation:** Experimental blink, respiration, and heart-rate values are calculated.
-7. **Visualization:** Results are displayed through the Streamlit dashboard.
+6. **Parameter Estimation:** Experimental blink, PERCLOS, respiration, and heart-rate values are calculated.
+7. **Status Classification:** Eye-closure patterns are used to generate experimental fatigue-status indicators.
+8. **Visualization:** Results are displayed through the Streamlit dashboard.
 
 ---
 
@@ -141,7 +161,8 @@ BioVision-AI/
 │
 ├── screenshots/
 │   ├── overview.png
-│   ├── blink-monitoring.png
+│   ├── blink_monitoring.png
+│   ├── monitoring.png
 │   ├── respiration-monitoring.png
 │   ├── heart-monitoring-1.png
 │   └── heart-monitoring-2.png
@@ -188,13 +209,13 @@ python -m venv venv
 
 ### Step 4: Activate the Virtual Environment
 
-For Windows:
+**For Windows:**
 
 ```bash
 venv\Scripts\activate
 ```
 
-For Linux/macOS:
+**For Linux/macOS:**
 
 ```bash
 source venv/bin/activate
@@ -229,6 +250,8 @@ Potential educational and research applications include:
 
 - Exploring contactless computer vision techniques.
 - Understanding facial landmark-based blink detection.
+- Studying experimental eye-closure and fatigue indicators.
+- Learning PERCLOS-based estimation concepts.
 - Studying visual signal extraction.
 - Exploring remote photoplethysmography.
 - Learning real-time video processing and signal visualization.
@@ -240,7 +263,9 @@ Potential educational and research applications include:
 BioVision AI is an experimental educational project developed to explore computer vision and signal processing techniques.
 
 - Heart-rate and respiration-rate outputs are algorithmic estimates and may be affected by lighting, movement, camera quality, and environmental conditions.
-- Blink patterns alone cannot reliably determine fatigue.
+- PERCLOS is approximated using the proportion of eye-closed samples in a rolling 30-second window. Its accuracy can be affected by variations in frame sampling and face detection.
+- The fatigue-status thresholds are illustrative and have not been clinically validated.
+- Blink patterns and eye-closure measurements alone cannot reliably determine fatigue.
 - The system has not been clinically validated.
 - The displayed values should not be considered medical measurements.
 - The application must not be used for medical diagnosis, treatment, or healthcare decisions.
@@ -252,6 +277,7 @@ BioVision AI is an experimental educational project developed to explore compute
 ## 🔮 Future Enhancements
 
 - Improve signal extraction and noise reduction.
+- Improve PERCLOS calculation using actual elapsed eye-closure time.
 - Evaluate estimation accuracy against suitable reference measurements.
 - Improve performance under different lighting conditions.
 - Enhance real-time signal visualization.

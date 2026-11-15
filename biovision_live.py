@@ -546,6 +546,10 @@ class BioVisionProcessor(VideoProcessorBase):
         self.closed_start = 0
         self.ear = 0
         self.ear_history = deque(maxlen=300)
+        # Rolling eye-closure history for an experimental PERCLOS indicator.
+        self.eye_state_history = deque()
+        self.perclos = 0.0
+        self.fatigue_status = "Waiting for face detection"
 
         self.heart_rate = None
         self.breathing_rate = None
@@ -726,12 +730,45 @@ class BioVisionProcessor(VideoProcessorBase):
 
                     self.eye_closed = False
 
+                # Keep eye-open/closed samples from the latest 30 seconds.
+                self.eye_state_history.append((now, self.eye_closed))
+                cutoff = now - 30.0
+                while self.eye_state_history and self.eye_state_history[0][0] < cutoff:
+                    self.eye_state_history.popleft()
+
+                if self.eye_state_history:
+                    closed_samples = sum(
+                        1 for _, closed in self.eye_state_history if closed
+                    )
+                    self.perclos = 100.0 * closed_samples / len(self.eye_state_history)
+
+                closure_duration = (
+                    now - self.closed_start if self.eye_closed else 0.0
+                )
+                if self.eye_closed and closure_duration >= 2.0:
+                    self.fatigue_status = "Prolonged eye closure"
+                elif self.perclos >= 20.0:
+                    self.fatigue_status = "Possible fatigue"
+                else:
+                    self.fatigue_status = "Normal"
+            else:
+                self.fatigue_status = "Face not detected"
+
             cv2.putText(
                 image,
                 f"Status: {status}",
                 (20, 45),
                 cv2.FONT_HERSHEY_SIMPLEX,
                 0.7,
+                (0, 255, 180),
+                2
+            )
+            cv2.putText(
+                image,
+                f"Fatigue: {self.fatigue_status}",
+                (20, 180),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.55,
                 (0, 255, 180),
                 2
             )
@@ -1152,7 +1189,9 @@ elif page == "Monitoring":
                     "module": active,
                     "duration": round(elapsed, 1),
                     "total_blinks": processor.blink_count,
-                    "ear": round(processor.ear, 3)
+                    "ear": round(processor.ear, 3),
+                    "perclos": round(processor.perclos, 1),
+                    "fatigue_status": processor.fatigue_status
                 }
 
             elif active == "Respiration Rate":
@@ -1195,6 +1234,35 @@ elif page == "Monitoring":
 
                 with c3:
                     st.metric("Eye Aspect Ratio", round(processor.ear, 3))
+
+                st.markdown("#### Fatigue Status")
+                st.metric("PERCLOS (30-second window)", f"{processor.perclos:.1f}%")
+
+                st.markdown("**PERCLOS percentage guide**")
+                fatigue_ranges = pd.DataFrame({
+                    "Status": ["Normal", "Possible fatigue", "Prolonged eye closure"],
+                    "PERCLOS (%)": ["0–19.9%", "20–100%", "Not percentage-based"],
+                    "Condition": [
+                        "PERCLOS is below 20%",
+                        "PERCLOS is 20% or higher",
+                        "Eyes remain closed continuously for 2 seconds or more"
+                    ]
+                })
+                st.table(fatigue_ranges)
+
+                if processor.fatigue_status == "Normal":
+                    st.success("Normal")
+                elif processor.fatigue_status == "Possible fatigue":
+                    st.warning("Possible fatigue")
+                elif processor.fatigue_status == "Prolonged eye closure":
+                    st.error("Prolonged eye closure")
+                else:
+                    st.info("Face not detected — adjust your position.")
+                st.caption(
+                    "Experimental indicator only: possible fatigue is flagged at "
+                    "PERCLOS ≥ 20%, and prolonged eye closure at ≥ 2 seconds. "
+                    "These thresholds are illustrative, not medically validated."
+                )
                 st.markdown("#### Eye Tracking Status")
 
                 if processor.ear > 0:
@@ -1322,6 +1390,8 @@ elif page == "Monitoring":
 
                 c1.metric("Total Blinks", summary["total_blinks"])
                 c2.metric("Final Eye Aspect Ratio", summary["ear"])
+                st.metric("Final Fatigue Status", summary["fatigue_status"])
+                st.metric("Final PERCLOS", f"{summary['perclos']}%")
 
             elif active == "Respiration Rate":
 
